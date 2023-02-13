@@ -2,20 +2,23 @@ package me.ordalca.nuzlocke;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
 
+import com.pixelmonmod.pixelmon.client.ClientProxy;
 import me.ordalca.nuzlocke.battles.BagUsageHandler;
 import me.ordalca.nuzlocke.battles.AIAdapter;
 import me.ordalca.nuzlocke.battles.NuzlockeClientBattleManager;
-import me.ordalca.nuzlocke.captures.BiomeBlocker;
-import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
-import me.ordalca.nuzlocke.captures.OutOfBattleCatchControl;
+import me.ordalca.nuzlocke.captures.*;
 import me.ordalca.nuzlocke.commands.NuzlockeCommand;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import me.ordalca.nuzlocke.healing.FaintingController;
 
+import me.ordalca.nuzlocke.nicknames.NicknameHandler;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import org.apache.logging.log4j.LogManager;
@@ -48,7 +51,20 @@ public class ModFile {
         MinecraftForge.EVENT_BUS.register(NuzlockePlayerData.class);
 
         Pixelmon.EVENT_BUS.register(AIAdapter.getInstance());
-        new NuzlockeClientBattleManager();
+        Pixelmon.EVENT_BUS.register(RaidCaptures.getInstance());
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void init(FMLClientSetupEvent event) {
+        NuzlockeConfigProxy.reload();
+
+        Pixelmon.EVENT_BUS.register(NicknameHandler.getInstance());
+        MinecraftForge.EVENT_BUS.register(NicknameHandler.getInstance());
+
+        if (ClientProxy.battleManager != null) {
+            new NuzlockeClientBattleManager();
+        }
     }
 
     @SubscribeEvent

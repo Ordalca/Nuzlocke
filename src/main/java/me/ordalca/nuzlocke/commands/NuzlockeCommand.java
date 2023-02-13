@@ -36,7 +36,18 @@ public class NuzlockeCommand extends PixelCommand {
         }
 
         String command = args[0];
-        if (command.equalsIgnoreCase("reset")) {
+        if (command.equalsIgnoreCase("begin")) {
+            if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
+                NuzlockePlayerData data = (NuzlockePlayerData)StorageProxy.getParty(player.getUUID()).playerData;
+                data.nuzlockeEnabled = true;
+            }
+        } else if (command.equalsIgnoreCase("cancel")) {
+            if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
+                NuzlockePlayerData data = (NuzlockePlayerData)StorageProxy.getParty(player.getUUID()).playerData;
+                data.nuzlockeEnabled = false;
+            }
+        }
+        else if (command.equalsIgnoreCase("reset")) {
             String confirmCommand = "\"/nuzlocke reset confirm\"";
             if (args.length > 1 && args[1].equalsIgnoreCase("confirm")) {
                 ModFile.LOGGER.debug("runReset");
@@ -49,9 +60,9 @@ public class NuzlockeCommand extends PixelCommand {
         } else if (command.equalsIgnoreCase("blocks")) {
             printBlocked(player);
         } else if (command.equalsIgnoreCase("clear")) {
-//            clearBlocks(player);
+            clearBlocks(player);
         } else if (command.equalsIgnoreCase("revive")) {
-//            clearDeath(player);
+            clearDeath(player);
         }
     }
     public void resetNuzlocke(ServerPlayerEntity player) {
@@ -118,6 +129,10 @@ public class NuzlockeCommand extends PixelCommand {
     public List<String> getTabCompletions(MinecraftServer server, CommandSource sender, String[] args, BlockPos pos) {
         List<String> list = Lists.newArrayList();
         if (args.length == 1) {
+            if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
+                list.add("begin");
+                list.add("cancel");
+            }
             list.add("blocks");
             list.add("reset");
         }

@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="nuzlocke"
-version="1.0.0"
+version="1.1.0"
 displayName="Nuzlocke"
 displayURL="https://github.com/Ordalca/Nuzlocke"
 credits="Ordalca"
@@ -31,6 +31,6 @@ Mod enforcing the Nuzlocke challenge in Pixelmon.
 [[dependencies.modid]]
     modId="pixelmon"
     mandatory=true
-    versionRange="[9.1.0,)"
+    versionRange="[9.1.0,9.1.2]"
     ordering="NONE"
     side="BOTH"

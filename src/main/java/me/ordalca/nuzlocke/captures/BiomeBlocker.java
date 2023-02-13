@@ -74,20 +74,21 @@ public class BiomeBlocker {
                     for (PixelmonEntity pokemon : nonBossWildPokemon) {
                         PlayerPartyStorage storage = StorageProxy.getParty(player.getUUID());
                         NuzlockePlayerData data = (NuzlockePlayerData)storage.playerData;
-                        data.recordBattleBiomes(nonBossWildPokemon);
-
-                        String pokemonUUID = pokemon.getUUID().toString();
-                        String biome = pokemon.getPersistentData().getString(biomeKey);
-                        if (!biome.equals("")) {
-                            // if not already blocked
-                            if (! data.isBiomeBlocked(pokemonUUID, biome)) {
-                                //then block it if dupes clause doesn't avoid it
-                                if (dupesClauseCheck(storage, pokemon)) {
-                                    data.blockBiomeForPokemon(pokemonUUID, biome);
+                        if (data.nuzlockeEnabled) {
+                            data.recordBattleBiomes(nonBossWildPokemon);
+                            String pokemonUUID = pokemon.getUUID().toString();
+                            String biome = pokemon.getPersistentData().getString(biomeKey);
+                            if (!biome.equals("")) {
+                                // if not already blocked
+                                if (!data.isBiomeBlocked(pokemonUUID, biome)) {
+                                    //then block it if dupes clause doesn't avoid it
+                                    if (dupesClauseCheck(storage, pokemon)) {
+                                        data.blockBiomeForPokemon(pokemonUUID, biome);
+                                    }
                                 }
+                            } else {
+                                ModFile.LOGGER.debug("Unknown biome for pokemon " + pokemon);
                             }
-                        } else {
-                            ModFile.LOGGER.debug("Unknown biome for pokemon "+pokemon);
                         }
                     }
                 }

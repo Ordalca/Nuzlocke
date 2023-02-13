@@ -5,21 +5,37 @@ import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.storage.playerData.PlayerData;
 import me.ordalca.nuzlocke.ModFile;
+import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class NuzlockePlayerData extends PlayerData {
     public static final String nbtKey = "blockedBiomes";
+    private static final String enabledKey = "nuzlockeEnabled";
 
     private final PlayerData parent;
+    public boolean nicknaming = false;
+    public boolean nuzlockeEnabled = false;
     public final HashMap<String, String> blockedBiomes  = new HashMap<>();
     public final HashMap<String, String> battleBiomes  = new HashMap<>();
     public NuzlockePlayerData(PlayerData data) {
         parent = data;
+    }
+
+    public static boolean isNuzlockeEnabled(UUID player) {
+        if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
+            PlayerPartyStorage storage = StorageProxy.getParty(player);
+            if (storage != null) {
+                NuzlockePlayerData data = (NuzlockePlayerData) storage.playerData;
+                return data.nuzlockeEnabled;
+            }
+        }
+        return true;
     }
 
     @SubscribeEvent
@@ -32,6 +48,12 @@ public class NuzlockePlayerData extends PlayerData {
         if (nbt != null) {
             nuzlockePlayerData.load(nbt);
         }
+
+        if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
+            nuzlockePlayerData.nuzlockeEnabled = event.getPlayer().getPersistentData().getBoolean(enabledKey);
+        } else {
+            nuzlockePlayerData.nuzlockeEnabled = true;
+        }
     }
     @SubscribeEvent
     public static void playerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
@@ -39,6 +61,7 @@ public class NuzlockePlayerData extends PlayerData {
         if (data instanceof NuzlockePlayerData) {
             NuzlockePlayerData ndata = (NuzlockePlayerData) data;
             event.getPlayer().getPersistentData().put(nbtKey, ndata.saveAsCompoundNBT());
+            event.getPlayer().getPersistentData().putBoolean(enabledKey, ndata.nuzlockeEnabled);
         }
     }
 
@@ -50,6 +73,10 @@ public class NuzlockePlayerData extends PlayerData {
         }
     }
     public boolean isBiomeBlocked(String pokemonUUID) {
+        if (!nuzlockeEnabled) {
+            return false;
+        }
+
         if (battleBiomes.containsKey(pokemonUUID)) {
             return isBiomeBlocked(pokemonUUID, battleBiomes.get(pokemonUUID));
         }
@@ -58,6 +85,10 @@ public class NuzlockePlayerData extends PlayerData {
     }
 
     public boolean isBiomeBlocked(String pokemonUUID, String biome) {
+        if (!nuzlockeEnabled) {
+            return false;
+        }
+
         if (biome.equals("")) {
             ModFile.LOGGER.debug("Unknown biome for "+pokemonUUID);
             return true;
@@ -72,7 +103,9 @@ public class NuzlockePlayerData extends PlayerData {
         }
     }
     public void blockBiomeForPokemon(String pokemonUUID, String biome) {
-        blockedBiomes.put(biome, pokemonUUID);
+        if (nuzlockeEnabled) {
+            blockedBiomes.put(biome, pokemonUUID);
+        }
     }
 
     public CompoundNBT saveAsCompoundNBT() {

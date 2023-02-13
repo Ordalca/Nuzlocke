@@ -35,6 +35,9 @@ public class OutOfBattleCatchControl {
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void attemptingOutOfBattleCapture(CaptureEvent.StartCapture event) {
         ServerPlayerEntity player = event.getPlayer();
+        if (!NuzlockePlayerData.isNuzlockeEnabled(player.getUUID()))
+            return;
+
         PixelmonEntity pokemon = event.getPokemon();
 
         boolean blockCatch = false;
@@ -84,6 +87,9 @@ public class OutOfBattleCatchControl {
 
     @SubscribeEvent
     public void stopMasterBall(PlayerInteractEvent.RightClickItem itemEvent) {
+        if (!NuzlockePlayerData.isNuzlockeEnabled(itemEvent.getPlayer().getUUID()))
+            return;
+
         if(NuzlockeConfigProxy.getNuzlocke().preventMasterBallUse() && stackHasMasterBall(itemEvent.getItemStack())) {
             itemEvent.setCanceled(true);
         }

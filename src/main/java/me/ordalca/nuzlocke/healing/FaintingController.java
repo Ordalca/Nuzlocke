@@ -11,9 +11,12 @@ import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipant;
 import com.pixelmonmod.pixelmon.battles.controller.participants.ParticipantType;
 
+import com.pixelmonmod.pixelmon.entities.pixelmon.moveSkills.WeatherChanger;
+import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.*;
 
+import net.minecraft.command.impl.WeatherCommand;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
@@ -43,11 +46,17 @@ public class FaintingController {
     @SubscribeEvent
     public void outOfBattleFaint(PixelmonFaintEvent.Post event) {
         PlayerEntity player = event.getPlayer();
+        if (player == null || !NuzlockePlayerData.isNuzlockeEnabled(player.getUUID())) {
+            return;
+        }
 
-        if (player != null && !playerInBattle(player.getUUID())) {
+        if (!playerInBattle(player.getUUID())) {
             Pokemon pokemon = event.getPokemon();
             PlayerPartyStorage storage = StorageProxy.getParty(player.getUUID());
             onPokemonFainting(player, storage.getSlot(pokemon));
+            if (storage.countAblePokemon() == 0) {
+                playerWiped(event.getPlayer());
+            }
         }
     }
 
@@ -71,6 +80,11 @@ public class FaintingController {
             if (participant.getEntity() instanceof ServerPlayerEntity) {
                 ServerPlayerEntity player = (ServerPlayerEntity) participant.getEntity();
                 playersInBattle.remove(player.getUUID());
+
+                if (! NuzlockePlayerData.isNuzlockeEnabled(player.getUUID())) {
+                    continue;
+                }
+
                 if (NuzlockeConfigProxy.getNuzlocke().isPVPDeathEnforced() || !(event.getBattleController().isPvP())) {
                     Pokemon[] party = StorageProxy.getParty(player).getOriginalParty();
                     int count = 0;
@@ -93,7 +107,6 @@ public class FaintingController {
     }
 
     private void playerWiped(ServerPlayerEntity player) {
-        PixelmonCommandUtils.sendMessage(player, "Your team has died, the nuzlocke is lost.");
         switch (NuzlockeConfigProxy.getNuzlocke().trainerWipePenalty()) {
             case DEATH:
                 player.kill();
@@ -128,6 +141,10 @@ public class FaintingController {
 
     @SubscribeEvent
     public void onPassiveHeal(PassiveHealEvent.Pre event) {
+        if (! NuzlockePlayerData.isNuzlockeEnabled(event.getPlayer().getUUID())) {
+            return;
+        }
+
         if (event.willRevive() && NuzlockeConfigProxy.getNuzlocke().pokemonFaintingPenalty() == FaintResult.DEAD) {
             event.setCanceled(true);
         }
@@ -136,6 +153,10 @@ public class FaintingController {
     @SubscribeEvent
     public void onHealerUsed(HealerEvent.Post event) {
         PlayerEntity player = event.player;
+        if (! NuzlockePlayerData.isNuzlockeEnabled(player.getUUID())) {
+            return;
+        }
+
         PlayerPartyStorage party = StorageProxy.getParty(player.getUUID());
         for (Pokemon pokemon : party.getTeam()) {
             if (pokemon.getPersistentData().getBoolean("dead")) {
@@ -147,7 +168,11 @@ public class FaintingController {
     @SubscribeEvent
     public void blockMainHandRevives(PlayerInteractEvent.RightClickItem itemEvent) {
         PlayerEntity player = itemEvent.getPlayer();
-        if (player != null && NuzlockeConfigProxy.getNuzlocke().pokemonFaintingPenalty() == FaintResult.DEAD) {
+        if (player == null || ! NuzlockePlayerData.isNuzlockeEnabled(player.getUUID())) {
+            return;
+        }
+
+        if (NuzlockeConfigProxy.getNuzlocke().pokemonFaintingPenalty() == FaintResult.DEAD) {
             Item item = itemEvent.getItemStack().getItem();
             if (item.equals(PixelmonItems.revive) || item.equals(PixelmonItems.max_revive) || item.equals(PixelmonItems.revival_herb)) {
                 itemEvent.setCanceled(true);
@@ -172,6 +197,10 @@ public class FaintingController {
 
     @SubscribeEvent
     public void sendOut(PokemonSendOutEvent.Pre event) {
+        if (event.getPlayer() == null || ! NuzlockePlayerData.isNuzlockeEnabled(event.getPlayer().getUUID())) {
+            return;
+        }
+
         Pokemon pokemon = event.getPokemon();
         if (pokemon.getPersistentData().getBoolean("dead")) {
             pokemon.setHealth(0);

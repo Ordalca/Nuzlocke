@@ -59,16 +59,20 @@ public class HuntGoal extends Goal {
             return false;
         }
 
-        if (aggression == PokemonAggression.ENCOUNTER) {
-            if (this.data == null) {
-                PlayerData playerData = StorageProxy.getParty(targetEntity.getUUID()).playerData;
-                if (playerData instanceof NuzlockePlayerData) {
-                    this.data = (NuzlockePlayerData) playerData;
-                } else {
-                    return false;
-                }
+        if (this.data == null) {
+            PlayerData playerData = StorageProxy.getParty(targetEntity.getUUID()).playerData;
+            if (playerData instanceof NuzlockePlayerData) {
+                this.data = (NuzlockePlayerData) playerData;
+            } else {
+                return false;
             }
+        }
 
+        if (!this.data.nuzlockeEnabled) {
+            return false;
+        }
+
+        if (aggression == PokemonAggression.ENCOUNTER) {
             if (this.data.isBiomeBlocked(this.theEntity.getStringUUID(), this.biome)) {
                 this.theEntity.setTarget(null);
                 return false;

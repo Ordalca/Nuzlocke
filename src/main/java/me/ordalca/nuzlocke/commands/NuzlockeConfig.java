@@ -37,6 +37,9 @@ public class NuzlockeConfig extends AbstractYamlConfig{
         AGGRESSIVE
     }
 
+    private boolean requirePermission = false;
+    private boolean requireNicknames = true;
+
     private boolean firstEncounterRestriction = true;
     private boolean dupesClause = true;
     private boolean shinyClause = false;
@@ -47,6 +50,7 @@ public class NuzlockeConfig extends AbstractYamlConfig{
     private BagUse bagUse = BagUse.UNRESTRICTED;
 
     private boolean blockMasterBall = false;
+    private boolean blockMasterBallInRaids = false;
     private boolean blockInBattleStronger = false;
     private int strongerThreshold = 5;
     private OutOfBattleRestrictions outOfBattle = new OutOfBattleRestrictions();
@@ -54,6 +58,9 @@ public class NuzlockeConfig extends AbstractYamlConfig{
     private boolean eliteTrainerPokemon = false;
     private TrainerSkill trainerSkill = TrainerSkill.STANDARD;
     private PokemonAggression pokemonAggression = PokemonAggression.STANDARD;
+
+    public boolean isPermissionRequired() { return this.requirePermission; }
+    public boolean areNicknamesRequired() { return this.requireNicknames; }
 
     public boolean isFirstEncounterRestricted() { return this.firstEncounterRestriction; }
     public boolean isDupesClauseActive() { return this.dupesClause; }
@@ -65,6 +72,7 @@ public class NuzlockeConfig extends AbstractYamlConfig{
     public BagUse bagRestrictions() { return this.bagUse; }
 
     public boolean preventMasterBallUse() { return this.blockMasterBall; }
+    public boolean preventMasterBallUseInRaids() { return this.blockMasterBallInRaids; }
     public boolean preventCatchingStrongerPokemonInBattle() { return this.blockInBattleStronger; }
     public int permittedLevelDifferenceToCatch() { return this.strongerThreshold; }
     public OutOfBattleRestrictions getOutOfBattleRestrictions() { return this.outOfBattle; }

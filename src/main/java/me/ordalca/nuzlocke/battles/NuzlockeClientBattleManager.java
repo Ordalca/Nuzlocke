@@ -1,14 +1,16 @@
 package me.ordalca.nuzlocke.battles;
 
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
+import com.pixelmonmod.pixelmon.battles.controller.participants.PixelmonWrapper;
 import com.pixelmonmod.pixelmon.client.ClientProxy;
 import com.pixelmonmod.pixelmon.client.gui.battles.ClientBattleManager;
 import com.pixelmonmod.pixelmon.client.gui.battles.PixelmonClientData;
 
+import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 
-import java.util.Locale;
+import java.util.*;
 
 public class NuzlockeClientBattleManager extends ClientBattleManager {
     public NuzlockeClientBattleManager() {
@@ -18,9 +20,14 @@ public class NuzlockeClientBattleManager extends ClientBattleManager {
     @Override
     public boolean canCatchOpponent() {
         if (super.canCatchOpponent()) {
-            if (notBlockedByBiome() && notBlockedByLevel()) {
+            NuzlockePlayerData playerData = (NuzlockePlayerData) StorageProxy.getParty(this.getViewPlayer().getUUID()).playerData;
+            if (playerData.nuzlockeEnabled) {
+                if (notBlockedByBiome() && notBlockedByLevel()) {
+                    return true;
+                } else return permittedByShinyClause();
+            } else {
                 return true;
-            } else return permittedByShinyClause();
+            }
         }
         return false;
     }
@@ -66,5 +73,20 @@ public class NuzlockeClientBattleManager extends ClientBattleManager {
             }
         }
         return false;
+    }
+
+    public void updateOurPokemon(List<PixelmonWrapper> displayed, List<PixelmonWrapper> fullTeam) {
+        UUID[] clientDisplay = new UUID[displayed.size()];
+        for (int idx = 0; idx < displayed.size(); idx++) {
+            PixelmonWrapper wrapper = displayed.get(idx);
+            clientDisplay[idx] = wrapper.getPokemonUUID();
+        }
+        PixelmonClientData[] clientTeam = new PixelmonClientData[fullTeam.size()];
+        for (int idx = 0; idx < fullTeam.size(); idx++) {
+            PixelmonWrapper wrapper = fullTeam.get(idx);
+            clientTeam[idx] = new PixelmonClientData(wrapper);
+        }
+        this.setFullTeamData(clientTeam);
+        this.setTeamPokemon(clientDisplay);
     }
 }

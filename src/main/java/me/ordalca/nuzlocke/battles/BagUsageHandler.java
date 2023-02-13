@@ -4,6 +4,7 @@ import com.pixelmonmod.pixelmon.api.battles.BagSection;
 import com.pixelmonmod.pixelmon.api.events.battles.BagItemEvent;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonItems;
 import com.pixelmonmod.pixelmon.items.ItemData;
+import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.*;
 import me.ordalca.nuzlocke.captures.OutOfBattleCatchControl;
@@ -24,6 +25,9 @@ public class BagUsageHandler {
     }
     @SubscribeEvent
     public void onBagUse(BagItemEvent.CollectItems.Pre event) {
+        if (!NuzlockePlayerData.isNuzlockeEnabled(event.getPlayer().getUUID()))
+            return;
+
         List<ItemData> items = event.getItems();
         if (NuzlockeConfigProxy.getNuzlocke().preventMasterBallUse() ||
                 NuzlockeConfigProxy.getNuzlocke().bagRestrictions() != BagUse.UNRESTRICTED) {
