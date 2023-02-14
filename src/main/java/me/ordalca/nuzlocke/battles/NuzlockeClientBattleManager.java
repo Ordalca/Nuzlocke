@@ -1,7 +1,6 @@
 package me.ordalca.nuzlocke.battles;
 
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
-import com.pixelmonmod.pixelmon.battles.controller.participants.PixelmonWrapper;
 import com.pixelmonmod.pixelmon.client.ClientProxy;
 import com.pixelmonmod.pixelmon.client.gui.battles.ClientBattleManager;
 import com.pixelmonmod.pixelmon.client.gui.battles.PixelmonClientData;
@@ -9,10 +8,27 @@ import com.pixelmonmod.pixelmon.client.gui.battles.PixelmonClientData;
 import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.*;
 
 public class NuzlockeClientBattleManager extends ClientBattleManager {
+
+    @SubscribeEvent
+    public static void playerJoined(EntityJoinWorldEvent event) {
+        if(event.getEntity() instanceof PlayerEntity) {
+            if (event.getWorld().isClientSide()) {
+                if (ClientProxy.battleManager != null) {
+                    if(!(ClientProxy.battleManager instanceof NuzlockeClientBattleManager)) {
+                        new NuzlockeClientBattleManager();
+                    }
+                }
+            }
+        }
+    }
+
     public NuzlockeClientBattleManager() {
         ClientProxy.battleManager = this;
     }
@@ -21,7 +37,7 @@ public class NuzlockeClientBattleManager extends ClientBattleManager {
     public boolean canCatchOpponent() {
         if (super.canCatchOpponent()) {
             NuzlockePlayerData playerData = (NuzlockePlayerData) StorageProxy.getParty(this.getViewPlayer().getUUID()).playerData;
-            if (playerData.nuzlockeEnabled) {
+            if (playerData.isNuzlockeEnabled()) {
                 if (notBlockedByBiome() && notBlockedByLevel()) {
                     return true;
                 } else return permittedByShinyClause();
@@ -73,20 +89,5 @@ public class NuzlockeClientBattleManager extends ClientBattleManager {
             }
         }
         return false;
-    }
-
-    public void updateOurPokemon(List<PixelmonWrapper> displayed, List<PixelmonWrapper> fullTeam) {
-        UUID[] clientDisplay = new UUID[displayed.size()];
-        for (int idx = 0; idx < displayed.size(); idx++) {
-            PixelmonWrapper wrapper = displayed.get(idx);
-            clientDisplay[idx] = wrapper.getPokemonUUID();
-        }
-        PixelmonClientData[] clientTeam = new PixelmonClientData[fullTeam.size()];
-        for (int idx = 0; idx < fullTeam.size(); idx++) {
-            PixelmonWrapper wrapper = fullTeam.get(idx);
-            clientTeam[idx] = new PixelmonClientData(wrapper);
-        }
-        this.setFullTeamData(clientTeam);
-        this.setTeamPokemon(clientDisplay);
     }
 }

@@ -10,13 +10,16 @@ import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipant;
 import com.pixelmonmod.pixelmon.battles.controller.participants.PixelmonWrapper;
 import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
+import com.pixelmonmod.pixelmon.comm.ChatHandler;
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 
 import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.CompassItem;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -43,6 +46,38 @@ public class BiomeBlocker {
             if (location != null && !pokemon.getPersistentData().contains(biomeKey)) {
                 String path = location.getPath();
                 pokemon.getPersistentData().putString(biomeKey, path);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void checkBlockedBiomes(PlayerInteractEvent.RightClickItem event) {
+        if (event.getItemStack().getItem() instanceof CompassItem) {
+            if (event.getPlayer().level.isClientSide()) {
+                NuzlockePlayerData ndata = (NuzlockePlayerData) StorageProxy.getParty(event.getPlayer().getUUID()).playerData;
+                if (ndata != null) {
+                    if (ndata.blockedBiomes.size() > 0) {
+                        ChatHandler.sendChat(event.getEntityLiving(), "Blocked biomes: " + ndata.blockedBiomes.keySet());
+                    } else {
+                        ChatHandler.sendChat(event.getEntityLiving(), "No Blocked biomes");
+                    }
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void checkBlockedBiomesDebug(PlayerInteractEvent.LeftClickEmpty event) {
+        if (event.getItemStack().getItem() instanceof CompassItem) {
+            if (event.getPlayer().level.isClientSide()) {
+                NuzlockePlayerData ndata = (NuzlockePlayerData) StorageProxy.getParty(event.getPlayer().getUUID()).playerData;
+                if (ndata != null) {
+                    if (ndata.blockedBiomes.size() > 0) {
+                        ChatHandler.sendChat(event.getEntityLiving(), "Blocked biomes: " + ndata.blockedBiomes);
+                    } else {
+                        ChatHandler.sendChat(event.getEntityLiving(), "No Blocked biomes");
+                    }
+                }
             }
         }
     }
@@ -74,7 +109,7 @@ public class BiomeBlocker {
                     for (PixelmonEntity pokemon : nonBossWildPokemon) {
                         PlayerPartyStorage storage = StorageProxy.getParty(player.getUUID());
                         NuzlockePlayerData data = (NuzlockePlayerData)storage.playerData;
-                        if (data.nuzlockeEnabled) {
+                        if (data.isNuzlockeEnabled()) {
                             data.recordBattleBiomes(nonBossWildPokemon);
                             String pokemonUUID = pokemon.getUUID().toString();
                             String biome = pokemon.getPersistentData().getString(biomeKey);

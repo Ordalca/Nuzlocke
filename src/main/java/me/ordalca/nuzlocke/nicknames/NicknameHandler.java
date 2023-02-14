@@ -45,7 +45,7 @@ public class NicknameHandler {
         if (event.isCanceled()) return;
 
         NuzlockePlayerData data = (NuzlockePlayerData) StorageProxy.getParty(event.getPlayer()).playerData;
-        if (data.nuzlockeEnabled && nicknamesRequired) {
+        if (data.isNuzlockeEnabled() && nicknamesRequired) {
             ModFile.LOGGER.debug("received: "+event.getPokemon().getDisplayName());
             if (!nicknamed(event.getPokemon())) {
                 toBeNicknamed.add(event.getPokemon());
@@ -60,7 +60,7 @@ public class NicknameHandler {
         if (event.isCanceled()) return;
 
         NuzlockePlayerData data = (NuzlockePlayerData) StorageProxy.getParty(event.getPlayer()).playerData;
-        if (data.nuzlockeEnabled && nicknamesRequired) {
+        if (data.isNuzlockeEnabled() && nicknamesRequired) {
             ModFile.LOGGER.debug("receivedRaid: "+event.getRaidPokemon().getDisplayName());
             toBeNicknamed.add(event.getRaidPokemon());
             checkGui();
@@ -142,7 +142,7 @@ public class NicknameHandler {
     public void nicknameSet(SetNicknameEvent event) {
         if (NuzlockeConfigProxy.getNuzlocke().areNicknamesRequired() && !event.isCanceled()) {
             NuzlockePlayerData data = (NuzlockePlayerData) StorageProxy.getParty(event.player).playerData;
-            if (data.nuzlockeEnabled && this.toBeNicknamed.size() == 0) {
+            if (data.isNuzlockeEnabled() && this.toBeNicknamed.size() == 0) {
                 data.nicknaming = false;
             }
         }

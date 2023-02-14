@@ -68,7 +68,7 @@ public class HuntGoal extends Goal {
             }
         }
 
-        if (!this.data.nuzlockeEnabled) {
+        if (!this.data.isNuzlockeEnabled()) {
             return false;
         }
 

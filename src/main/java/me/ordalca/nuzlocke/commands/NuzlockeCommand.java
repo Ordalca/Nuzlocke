@@ -9,6 +9,7 @@ import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.api.storage.breeding.DayCareBox;
 import com.pixelmonmod.pixelmon.api.storage.breeding.PlayerDayCare;
+import com.pixelmonmod.pixelmon.comm.ChatHandler;
 import com.pixelmonmod.pixelmon.command.PixelCommand;
 
 import me.ordalca.nuzlocke.ModFile;
@@ -106,12 +107,13 @@ public class NuzlockeCommand extends PixelCommand {
 
     public void printBlocked(ServerPlayerEntity player) {
         // reset blocked biomes
-        PlayerPartyStorage party = StorageProxy.getParty(player.getUUID());
-        NuzlockePlayerData ndata = (NuzlockePlayerData) party.playerData;
-        if (ndata.blockedBiomes.size() > 0) {
-            PixelmonCommandUtils.sendMessage(player, "Blocked biomes: "+ndata.blockedBiomes.keySet());
-        } else {
-            PixelmonCommandUtils.sendMessage(player, "No Blocked biomes");
+        NuzlockePlayerData ndata = (NuzlockePlayerData) StorageProxy.getParty(player.getUUID()).playerData;
+        if (ndata != null) {
+            if (ndata.blockedBiomes.size() > 0) {
+                ChatHandler.sendChat(player, "Blocked biomes: " + ndata.blockedBiomes);
+            } else {
+                ChatHandler.sendChat(player, "No Blocked biomes");
+            }
         }
     }
 

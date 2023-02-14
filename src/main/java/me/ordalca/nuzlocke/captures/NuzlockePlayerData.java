@@ -2,10 +2,13 @@ package me.ordalca.nuzlocke.captures;
 
 import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
+import com.pixelmonmod.pixelmon.comm.ChatHandler;
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.storage.playerData.PlayerData;
 import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,6 +37,12 @@ public class NuzlockePlayerData extends PlayerData {
                 NuzlockePlayerData data = (NuzlockePlayerData) storage.playerData;
                 return data.nuzlockeEnabled;
             }
+        }
+        return true;
+    }
+    public boolean isNuzlockeEnabled() {
+        if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
+            return this.nuzlockeEnabled;
         }
         return true;
     }
@@ -105,6 +114,10 @@ public class NuzlockePlayerData extends PlayerData {
     public void blockBiomeForPokemon(String pokemonUUID, String biome) {
         if (nuzlockeEnabled) {
             blockedBiomes.put(biome, pokemonUUID);
+
+            ClientPlayerEntity player = Minecraft.getInstance().player;
+            if (player != null && player.level.isClientSide())
+                ChatHandler.sendChat(player, "Blocking "+biome);
         }
     }
 
@@ -121,7 +134,6 @@ public class NuzlockePlayerData extends PlayerData {
             blockedBiomes.put(key, blocked.getString(key));
         }
     }
-
 
     public void writeToNBT(CompoundNBT var1) { parent.writeToNBT(var1); }
     public void readFromNBT(CompoundNBT var1) { parent.readFromNBT(var1); }
