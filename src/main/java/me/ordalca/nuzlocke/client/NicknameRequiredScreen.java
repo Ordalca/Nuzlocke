@@ -1,16 +1,14 @@
-package me.ordalca.nuzlocke.nicknames;
+package me.ordalca.nuzlocke.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.api.storage.StoragePosition;
-import com.pixelmonmod.pixelmon.api.util.helpers.NetworkHelper;
 import com.pixelmonmod.pixelmon.api.util.helpers.ResourceLocationHelper;
 import com.pixelmonmod.pixelmon.api.util.helpers.TextHelper;
 import com.pixelmonmod.pixelmon.client.gui.pokechecker.ButtonRename;
 import com.pixelmonmod.pixelmon.client.gui.widgets.IndexedButton;
 import com.pixelmonmod.pixelmon.client.gui.widgets.text.TransparentTextFieldWidget;
-import com.pixelmonmod.pixelmon.comm.packetHandlers.RenamePokemonPacket;
+import me.ordalca.nuzlocke.ModFile;
+import me.ordalca.nuzlocke.networking.proxies.PokemonHolder;
 import net.minecraft.client.gui.screen.Screen;
 
 import net.minecraft.client.gui.widget.Widget;
@@ -18,15 +16,12 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
-@OnlyIn(Dist.CLIENT)
 public class NicknameRequiredScreen extends Screen {
     private static final int RENAME_BUTTON_ID = 0;
     public static ResourceLocation renameBox;
     protected int xSize = 176;
-    private final Pokemon pokemon;
+    private final PokemonHolder pokemon;
     private TransparentTextFieldWidget textField;
     private Widget button;
 
@@ -34,7 +29,7 @@ public class NicknameRequiredScreen extends Screen {
         renameBox = ResourceLocationHelper.of("nuzlocke:textures/gui/forcerename.png");
     }
 
-    public NicknameRequiredScreen(Pokemon pokemon) {
+    public NicknameRequiredScreen(PokemonHolder pokemon) {
         super(StringTextComponent.EMPTY);
         this.pokemon = pokemon;
     }
@@ -45,9 +40,11 @@ public class NicknameRequiredScreen extends Screen {
 
     @Override
     public void init() {
+        ModFile.LOGGER.debug("Nickname Screen");
+
         super.init();
         this.button = this.addButton(new ButtonRename(RENAME_BUTTON_ID, this.width / 2 - 25, this.height / 4 + 80, I18n.get("gui.renamePoke.renamebutton"), this::actionPerformed));
-        String pokemonName = this.pokemon.getDisplayName();
+        String pokemonName = this.pokemon.name;
 
         if (this.minecraft != null) {
             this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
@@ -70,7 +67,7 @@ public class NicknameRequiredScreen extends Screen {
         if (this.textField != null) {
             this.textField.tick();
             String currentRename = this.textField.getValue().trim();
-            boolean notNamed = (pokemon.getSpecies().getLocalizedName()).equalsIgnoreCase(currentRename);
+            boolean notNamed = (pokemon.species).equalsIgnoreCase(currentRename);
             if (this.button!= null) {
                 this.button.active = !currentRename.isEmpty() && !notNamed;
             }
@@ -87,11 +84,8 @@ public class NicknameRequiredScreen extends Screen {
 
     protected void actionPerformed(Button button) {
         if (button instanceof IndexedButton) {
-            StoragePosition pos = this.pokemon.getPosition();
-            if (pos != null) {
-                NetworkHelper.sendToServer(new RenamePokemonPacket(pos, this.pokemon.getUUID(), this.textField.getValue()));
-                this.pokemon.setNickname(new StringTextComponent(this.textField.getValue()));
-            }
+            pokemon.name = this.textField.getValue();
+            ClientNicknameHandler.reportNickname(pokemon);
             if (this.minecraft != null && this.minecraft.player != null) {
                 this.minecraft.player.closeContainer();
             }
@@ -137,7 +131,7 @@ public class NicknameRequiredScreen extends Screen {
         if (this.minecraft != null) {
             this.minecraft.getTextureManager().bind(NicknameRequiredScreen.renameBox);
             this.blit(matrix, (this.width - this.xSize) / 2 - 40, this.height / 4, 0, 0, 256, 114);
-            drawCenteredString(matrix, this.minecraft.font, "Rename " + this.pokemon.getDisplayName(), this.width / 2, this.height / 4 - 60 + 80, 16777215);
+            drawCenteredString(matrix, this.minecraft.font, "Rename " + this.pokemon.name, this.width / 2, this.height / 4 - 60 + 80, 16777215);
             this.textField.render(matrix, mouseX, mouseY, partialTicks);
             this.button.render(matrix, mouseX, mouseY, partialTicks);
         }

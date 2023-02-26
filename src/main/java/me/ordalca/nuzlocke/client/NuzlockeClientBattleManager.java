@@ -1,34 +1,15 @@
-package me.ordalca.nuzlocke.battles;
+package me.ordalca.nuzlocke.client;
 
-import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.client.ClientProxy;
 import com.pixelmonmod.pixelmon.client.gui.battles.ClientBattleManager;
 import com.pixelmonmod.pixelmon.client.gui.battles.PixelmonClientData;
 
 import me.ordalca.nuzlocke.ModFile;
-import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.*;
 
 public class NuzlockeClientBattleManager extends ClientBattleManager {
-
-    @SubscribeEvent
-    public static void playerJoined(EntityJoinWorldEvent event) {
-        if(event.getEntity() instanceof PlayerEntity) {
-            if (event.getWorld().isClientSide()) {
-                if (ClientProxy.battleManager != null) {
-                    if(!(ClientProxy.battleManager instanceof NuzlockeClientBattleManager)) {
-                        new NuzlockeClientBattleManager();
-                    }
-                }
-            }
-        }
-    }
-
     public NuzlockeClientBattleManager() {
         ClientProxy.battleManager = this;
     }
@@ -36,12 +17,12 @@ public class NuzlockeClientBattleManager extends ClientBattleManager {
     @Override
     public boolean canCatchOpponent() {
         if (super.canCatchOpponent()) {
-            NuzlockePlayerData playerData = (NuzlockePlayerData) StorageProxy.getParty(this.getViewPlayer().getUUID()).playerData;
-            if (playerData.isNuzlockeEnabled()) {
+            if (NuzlockeClientPlayerData.isNuzlockeEnabled()) {
                 if (notBlockedByBiome() && notBlockedByLevel()) {
                     return true;
                 } else return permittedByShinyClause();
             } else {
+                ModFile.LOGGER.debug("nuzlocke not enabled on client");
                 return true;
             }
         }
@@ -51,9 +32,8 @@ public class NuzlockeClientBattleManager extends ClientBattleManager {
     public boolean notBlockedByBiome() {
         if (!NuzlockeConfigProxy.getNuzlocke().isFirstEncounterRestricted()) return true;
         else {
-            NuzlockePlayerData playerData = (NuzlockePlayerData) StorageProxy.getParty(this.getViewPlayer().getUUID()).playerData;
             for (PixelmonClientData clientData : this.displayedEnemyPokemon) {
-                if (!(playerData.isBiomeBlocked(clientData.pokemonUUID.toString()))) {
+                if (!(NuzlockeClientPlayerData.isBiomeBlocked(clientData.pokemonUUID.toString()))) {
                     return true;
                 }
             }

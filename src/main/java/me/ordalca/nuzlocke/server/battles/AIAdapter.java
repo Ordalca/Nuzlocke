@@ -1,4 +1,4 @@
-package me.ordalca.nuzlocke.battles;
+package me.ordalca.nuzlocke.server.battles;
 
 import com.pixelmonmod.pixelmon.ai.ExecuteActionGoal;
 import com.pixelmonmod.pixelmon.api.events.BattleStartedEvent;
@@ -17,11 +17,12 @@ import com.pixelmonmod.pixelmon.battles.controller.participants.TrainerParticipa
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.spawning.PlayerTrackingSpawner;
 
-import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
+import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.TrainerSkill;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.PokemonAggression;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 
+import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -30,17 +31,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AIAdapter {
-    private static AIAdapter handler = null;
     AIAdapter() {}
-    public static AIAdapter getInstance() {
-        if (handler == null) {
-            handler = new AIAdapter();
-        }
-        return handler;
-    }
 
     @SubscribeEvent
-    public void npcPokemonBooster(BattleStartedEvent event) {
+    public static void npcPokemonBooster(BattleStartedEvent event) {
         if (! (participantInNuzlocke(Arrays.asList(event.participant1)))) {
             return;
         }
@@ -60,12 +54,15 @@ public class AIAdapter {
     }
 
     @SubscribeEvent
-    public void npcAIChooser(SetBattleAIEvent event) {
+    public static void npcAIChooser(SetBattleAIEvent event) {
         if (!participantInNuzlocke(event.bc.participants)) {
             return;
         }
+        ModFile.LOGGER.debug("set AI");
 
         if (event.participant instanceof TrainerParticipant) {
+            ModFile.LOGGER.debug("trainer ai");
+
             TrainerParticipant trainer = (TrainerParticipant) event.participant;
             TrainerSkill skill = NuzlockeConfigProxy.getNuzlocke().isSmartTrainers();
             if (skill != TrainerSkill.STANDARD) {
@@ -92,7 +89,7 @@ public class AIAdapter {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void aggressionBooster(SpawnEvent event) {
+    public static void aggressionBooster(SpawnEvent event) {
         if (event.spawner instanceof PlayerTrackingSpawner) {
             if (event.action.getOrCreateEntity() instanceof PixelmonEntity) {
                 PixelmonEntity pokemon = (PixelmonEntity) event.action.getOrCreateEntity();
@@ -113,7 +110,7 @@ public class AIAdapter {
                         break;
                     case AGGRESSIVE:
                     case ENCOUNTER:
-                        if (player != null && !NuzlockePlayerData.isNuzlockeEnabled(player.getUUID())) {
+                        if (player != null && !NuzlockeServerPlayerData.isNuzlockeEnabled(player.getUUID())) {
                             return;
                         }
 
@@ -132,7 +129,7 @@ public class AIAdapter {
     public static boolean participantInNuzlocke(List<BattleParticipant> participants) {
         for (BattleParticipant part : participants) {
             if (part instanceof PlayerParticipant) {
-                if (NuzlockePlayerData.isNuzlockeEnabled(((PlayerParticipant) part).player.getUUID())) {
+                if (NuzlockeServerPlayerData.isNuzlockeEnabled(((PlayerParticipant) part).player.getUUID())) {
                     return true;
                 }
             }

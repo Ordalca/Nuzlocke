@@ -9,11 +9,12 @@ import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.api.storage.breeding.DayCareBox;
 import com.pixelmonmod.pixelmon.api.storage.breeding.PlayerDayCare;
-import com.pixelmonmod.pixelmon.comm.ChatHandler;
 import com.pixelmonmod.pixelmon.command.PixelCommand;
 
 import me.ordalca.nuzlocke.ModFile;
-import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
+import me.ordalca.nuzlocke.networking.NuzlockeNetwork;
+import me.ordalca.nuzlocke.networking.messages.client.PlayerDataSyncMessage;
+import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.CommandException;
@@ -22,6 +23,8 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
 import com.google.common.collect.Lists;
+import net.minecraftforge.fml.network.PacketDistributor;
+
 import java.util.List;
 
 
@@ -39,13 +42,16 @@ public class NuzlockeCommand extends PixelCommand {
         String command = args[0];
         if (command.equalsIgnoreCase("begin")) {
             if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
-                NuzlockePlayerData data = (NuzlockePlayerData)StorageProxy.getParty(player.getUUID()).playerData;
-                data.nuzlockeEnabled = true;
+                NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)StorageProxy.getParty(player.getUUID()).playerData;
+
+                PlayerDataSyncMessage message = new PlayerDataSyncMessage(data.blockedBiomes, data.nuzlockeEnabled = true);
+                NuzlockeNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(()->player), message);
             }
         } else if (command.equalsIgnoreCase("cancel")) {
             if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
-                NuzlockePlayerData data = (NuzlockePlayerData)StorageProxy.getParty(player.getUUID()).playerData;
-                data.nuzlockeEnabled = false;
+                NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)StorageProxy.getParty(player.getUUID()).playerData;
+                PlayerDataSyncMessage message = new PlayerDataSyncMessage(data.blockedBiomes, data.nuzlockeEnabled = false);
+                NuzlockeNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(()->player), message);
             }
         }
         else if (command.equalsIgnoreCase("reset")) {
@@ -58,12 +64,13 @@ public class NuzlockeCommand extends PixelCommand {
                 PixelmonCommandUtils.sendMessage(player, confirmMessage);
                 ModFile.LOGGER.debug("confirm"+confirmMessage);
             }
-        } else if (command.equalsIgnoreCase("blocks")) {
-            printBlocked(player);
         } else if (command.equalsIgnoreCase("clear")) {
             clearBlocks(player);
         } else if (command.equalsIgnoreCase("revive")) {
             clearDeath(player);
+        } else if (command.equalsIgnoreCase("debug")) {
+            ModFile.debug = !ModFile.debug;
+            PixelmonCommandUtils.sendMessage(player, "Debug mode "+ (ModFile.debug?"enabled.":"disabled."));
         }
     }
     public void resetNuzlocke(ServerPlayerEntity player) {
@@ -100,21 +107,12 @@ public class NuzlockeCommand extends PixelCommand {
     public void clearBlocks(ServerPlayerEntity player) {
         // reset blocked biomes
         PlayerPartyStorage party = StorageProxy.getParty(player.getUUID());
-        NuzlockePlayerData ndata = (NuzlockePlayerData) party.playerData;
+        NuzlockeServerPlayerData ndata = (NuzlockeServerPlayerData) party.playerData;
         ndata.blockedBiomes.clear();
-        player.getPersistentData().put(NuzlockePlayerData.nbtKey, ndata.saveAsCompoundNBT());
-    }
+        player.getPersistentData().put(NuzlockeServerPlayerData.nbtKey, ModFile.mapToNBT(ndata.blockedBiomes));
 
-    public void printBlocked(ServerPlayerEntity player) {
-        // reset blocked biomes
-        NuzlockePlayerData ndata = (NuzlockePlayerData) StorageProxy.getParty(player.getUUID()).playerData;
-        if (ndata != null) {
-            if (ndata.blockedBiomes.size() > 0) {
-                ChatHandler.sendChat(player, "Blocked biomes: " + ndata.blockedBiomes);
-            } else {
-                ChatHandler.sendChat(player, "No Blocked biomes");
-            }
-        }
+        PlayerDataSyncMessage message = new PlayerDataSyncMessage(ndata.blockedBiomes, ndata.nuzlockeEnabled);
+        NuzlockeNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(()->player), message);
     }
 
     public void clearDeath(ServerPlayerEntity player) {
@@ -135,7 +133,6 @@ public class NuzlockeCommand extends PixelCommand {
                 list.add("begin");
                 list.add("cancel");
             }
-            list.add("blocks");
             list.add("reset");
         }
         return list;

@@ -1,12 +1,12 @@
-package me.ordalca.nuzlocke.battles;
+package me.ordalca.nuzlocke.server.battles;
 
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.storage.playerData.PlayerData;
-import me.ordalca.nuzlocke.captures.BiomeBlocker;
-import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
+import me.ordalca.nuzlocke.server.captures.BiomeBlocker;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.PokemonAggression;
+import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
@@ -19,7 +19,7 @@ import java.util.EnumSet;
 public class HuntGoal extends Goal {
     private final PixelmonEntity theEntity;
     private final PokemonAggression aggression;
-    private NuzlockePlayerData data;
+    private NuzlockeServerPlayerData data;
     private String biome;
     private Path path;
 
@@ -61,8 +61,8 @@ public class HuntGoal extends Goal {
 
         if (this.data == null) {
             PlayerData playerData = StorageProxy.getParty(targetEntity.getUUID()).playerData;
-            if (playerData instanceof NuzlockePlayerData) {
-                this.data = (NuzlockePlayerData) playerData;
+            if (playerData instanceof NuzlockeServerPlayerData) {
+                this.data = (NuzlockeServerPlayerData) playerData;
             } else {
                 return false;
             }
@@ -99,7 +99,7 @@ public class HuntGoal extends Goal {
     }
 
     public void start() {
-        this.theEntity.getNavigation().moveTo(this.path, (double)((float)this.theEntity.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
+        this.theEntity.getNavigation().moveTo(this.path, ((float)this.theEntity.getAttribute(Attributes.MOVEMENT_SPEED).getValue()));
         this.theEntity.setAggressive(true);
     }
 }

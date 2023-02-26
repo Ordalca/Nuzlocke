@@ -1,13 +1,13 @@
-package me.ordalca.nuzlocke.battles;
+package me.ordalca.nuzlocke.server.battles;
 
 import com.pixelmonmod.pixelmon.api.battles.BagSection;
 import com.pixelmonmod.pixelmon.api.events.battles.BagItemEvent;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonItems;
 import com.pixelmonmod.pixelmon.items.ItemData;
-import me.ordalca.nuzlocke.captures.NuzlockePlayerData;
+import me.ordalca.nuzlocke.ModFile;
+import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.*;
-import me.ordalca.nuzlocke.captures.OutOfBattleCatchControl;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,17 +15,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import java.util.List;
 
 public class BagUsageHandler {
-    private static BagUsageHandler handler = null;
-    BagUsageHandler() {}
-    public static BagUsageHandler getInstance() {
-        if (handler == null) {
-            handler = new BagUsageHandler();
-        }
-        return handler;
-    }
     @SubscribeEvent
-    public void onBagUse(BagItemEvent.CollectItems.Pre event) {
-        if (!NuzlockePlayerData.isNuzlockeEnabled(event.getPlayer().getUUID()))
+    public static void onBagUse(BagItemEvent.CollectItems.Pre event) {
+        if (!NuzlockeServerPlayerData.isNuzlockeEnabled(event.getPlayer().getUUID()))
             return;
 
         List<ItemData> items = event.getItems();
@@ -33,8 +25,7 @@ public class BagUsageHandler {
                 NuzlockeConfigProxy.getNuzlocke().bagRestrictions() != BagUse.UNRESTRICTED) {
             for (int idx = items.size() - 1; idx >= 0; idx--) {
                 ItemStack stack = items.get(idx).getItemStack();
-                if (NuzlockeConfigProxy.getNuzlocke().preventMasterBallUse() &&
-                        OutOfBattleCatchControl.stackHasMasterBall(stack)) {
+                if (NuzlockeConfigProxy.getNuzlocke().preventMasterBallUse() && ModFile.stackHasMasterBall(stack)) {
                     items.remove(idx);
                 } else if (NuzlockeConfigProxy.getNuzlocke().bagRestrictions() == BagUse.NOITEMS && violatesNoItems(stack)) {
                     items.remove(idx);
@@ -52,12 +43,13 @@ public class BagUsageHandler {
                 items.remove(idx);
             }
         }
+
         event.setItems(items);
     }
-    private boolean violatesNoItems(ItemStack stack) {
+    private static boolean violatesNoItems(ItemStack stack) {
         return ! (BagSection.POKEBALLS.isItem(stack));
     }
-    private boolean violatesNoHeals(ItemStack stack) {
+    private static boolean violatesNoHeals(ItemStack stack) {
         boolean valid = (BagSection.POKEBALLS.isItem(stack) || BagSection.BATTLE_ITEMS.isItem(stack));
         return !valid;
     }
