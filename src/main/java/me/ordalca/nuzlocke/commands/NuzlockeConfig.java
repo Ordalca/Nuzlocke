@@ -58,6 +58,7 @@ public class NuzlockeConfig extends AbstractYamlConfig{
     private boolean eliteTrainerPokemon = false;
     private TrainerSkill trainerSkill = TrainerSkill.STANDARD;
     private PokemonAggression pokemonAggression = PokemonAggression.STANDARD;
+    private boolean godMode = false;
 
     public boolean isPermissionRequired() { return this.requirePermission; }
     public boolean areNicknamesRequired() { return this.requireNicknames; }
@@ -80,6 +81,8 @@ public class NuzlockeConfig extends AbstractYamlConfig{
     public boolean isEliteTrainerPokemon() { return this.eliteTrainerPokemon; }
     public TrainerSkill isSmartTrainers() { return this.trainerSkill; }
     public PokemonAggression getPokemonAggression() { return this.pokemonAggression; }
+    public boolean godModeEnabled() { return this.godMode; }
+
     @ConfigSerializable
     public static class OutOfBattleRestrictions {
         private boolean blockOutOfBattleLegends = false;

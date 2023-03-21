@@ -4,6 +4,7 @@ import com.pixelmonmod.pixelmon.Pixelmon;
 
 import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
+import me.ordalca.nuzlocke.server.DamageHandler;
 import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 import me.ordalca.nuzlocke.server.battles.AIAdapter;
 import me.ordalca.nuzlocke.server.battles.BagUsageHandler;
@@ -35,6 +36,7 @@ public class NuzlockeServerProxy {
         Pixelmon.EVENT_BUS.register(BagUsageHandler.class);
         Pixelmon.EVENT_BUS.register(NicknameHandler.class);
 
+        MinecraftForge.EVENT_BUS.register(DamageHandler.class);
         MinecraftForge.EVENT_BUS.register(NuzlockeServerPlayerData.class);
         ModFile.LOGGER.debug("Loaded Server Proxy");
     }

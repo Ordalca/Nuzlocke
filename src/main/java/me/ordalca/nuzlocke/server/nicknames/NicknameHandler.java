@@ -12,7 +12,6 @@ import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import me.ordalca.nuzlocke.networking.NuzlockeNetwork;
 import me.ordalca.nuzlocke.networking.messages.client.RequestNicknameMessage;
 import me.ordalca.nuzlocke.networking.proxies.PokemonHolder;
-import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.eventbus.api.EventPriority;
