@@ -1,17 +1,17 @@
 package me.ordalca.nuzlocke.server.captures;
 
 import com.pixelmonmod.pixelmon.api.command.PixelmonCommandUtils;
-import com.pixelmonmod.pixelmon.api.events.CaptureEvent;
+import com.pixelmonmod.pixelmon.api.events.PokeBallImpactEvent;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 
+import com.pixelmonmod.pixelmon.entities.pokeballs.PokeBallEntity;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.OutOfBattleRestrictions;
 
 import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 
@@ -21,13 +21,10 @@ import java.util.Locale;
 public class OutOfBattleCatchControl {
     OutOfBattleCatchControl() {}
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void attemptingOutOfBattleCapture(CaptureEvent.StartCapture event) {
-        PixelmonEntity pokemon = event.getPokemon();
-        ServerPlayerEntity player = event.getPlayer();
+    public static boolean outOfBattleCatchingPermitted(PixelmonEntity pokemon, ServerPlayerEntity player) {
         NuzlockeServerPlayerData playerData = (NuzlockeServerPlayerData)StorageProxy.getParty(player).playerData;
         if (!playerData.isNuzlockeEnabled())
-            return;
+            return true;
 
         boolean blockCatch = false;
         String reason = "";
@@ -69,13 +66,32 @@ public class OutOfBattleCatchControl {
         if (blockCatch) {
             if (!shinyCausePermitsCatch(pokemon)) {
                 PixelmonCommandUtils.sendMessage(player, "Catching attempt blocked by Nuzlocke rules: "+reason);
-                event.setCanceled(true);
+                return false;
             }
         }
+        return true;
     }
 
     private static boolean shinyCausePermitsCatch(PixelmonEntity pokemon) {
         return (NuzlockeConfigProxy.getNuzlocke().isShinyClauseActive() &&
                 pokemon.getPalette().getName().toLowerCase(Locale.ENGLISH).contains("shiny"));
+    }
+    @SubscribeEvent
+    public static void ballHitsPokemon(PokeBallImpactEvent event) {
+        if (event.isEmptyPokeBall()) {
+            PokeBallEntity pokeball = event.getPokeBall();
+            if (pokeball.getOwner() instanceof ServerPlayerEntity) {
+                ServerPlayerEntity player = (ServerPlayerEntity) pokeball.getOwner();
+                event.getEntityHit().ifPresent(entity -> {
+                    if (entity instanceof PixelmonEntity) {
+                        PixelmonEntity pokemon = (PixelmonEntity) entity;
+                        if (pokemon.battleController == null) {
+                            boolean permitted = outOfBattleCatchingPermitted(pokemon, player);
+                            event.setCanceled(!permitted);
+                        }
+                    }
+                });
+            }
+        }
     }
 }
