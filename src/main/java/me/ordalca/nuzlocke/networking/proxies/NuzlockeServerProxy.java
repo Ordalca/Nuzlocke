@@ -4,7 +4,7 @@ import com.pixelmonmod.pixelmon.Pixelmon;
 
 import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
-import me.ordalca.nuzlocke.server.DamageHandler;
+import me.ordalca.nuzlocke.server.HardCoreHandler;
 import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 import me.ordalca.nuzlocke.server.battles.AIAdapter;
 import me.ordalca.nuzlocke.server.battles.BagUsageHandler;
@@ -29,14 +29,15 @@ public class NuzlockeServerProxy {
         Pixelmon.EVENT_BUS.register(BiomeBlocker.class);
         Pixelmon.EVENT_BUS.register(OutOfBattleCatchControl.class);
         Pixelmon.EVENT_BUS.register(RaidCaptures.class);
+        Pixelmon.EVENT_BUS.register(BagUsageHandler.class);
+        Pixelmon.EVENT_BUS.register(NicknameHandler.class);
 
         Pixelmon.EVENT_BUS.register(FaintingController.class);
         MinecraftForge.EVENT_BUS.register(FaintingController.class);
 
-        Pixelmon.EVENT_BUS.register(BagUsageHandler.class);
-        Pixelmon.EVENT_BUS.register(NicknameHandler.class);
+        Pixelmon.EVENT_BUS.register(HardCoreHandler.class);
+        MinecraftForge.EVENT_BUS.register(HardCoreHandler.class);
 
-        MinecraftForge.EVENT_BUS.register(DamageHandler.class);
         MinecraftForge.EVENT_BUS.register(NuzlockeServerPlayerData.class);
         ModFile.LOGGER.debug("Loaded Server Proxy");
     }

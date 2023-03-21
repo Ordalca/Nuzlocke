@@ -36,8 +36,15 @@ public class NuzlockeConfig extends AbstractYamlConfig{
         ENCOUNTER,
         AGGRESSIVE
     }
+    public enum NuzlockeStartControl {
+        COMMAND,
+        BALLS,
+        HEALER
+    }
 
     private boolean requirePermission = false;
+    private NuzlockeStartControl permissionMethod = NuzlockeStartControl.COMMAND;
+
     private boolean requireNicknames = true;
 
     private boolean firstEncounterRestriction = true;
@@ -61,6 +68,8 @@ public class NuzlockeConfig extends AbstractYamlConfig{
     private boolean godMode = false;
 
     public boolean isPermissionRequired() { return this.requirePermission; }
+    public NuzlockeStartControl getPermissionMethod() { return this.permissionMethod; }
+
     public boolean areNicknamesRequired() { return this.requireNicknames; }
 
     public boolean isFirstEncounterRestricted() { return this.firstEncounterRestriction; }
