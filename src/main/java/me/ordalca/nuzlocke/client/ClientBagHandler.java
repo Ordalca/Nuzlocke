@@ -13,7 +13,7 @@ public class ClientBagHandler {
     @SubscribeEvent
     public void blockBannedItems(PlayerInteractEvent.RightClickItem itemEvent) {
         PlayerEntity player = itemEvent.getPlayer();
-        if (player == null || ! NuzlockeClientPlayerData.isNuzlockeEnabled()) {
+        if (player == null || !NuzlockeClientPlayerData.isNuzlockeEnabled()) {
             return;
         }
 
@@ -24,7 +24,7 @@ public class ClientBagHandler {
             }
         }
 
-        if(NuzlockeConfigProxy.getNuzlocke().preventMasterBallUse() && ModFile.stackHasMasterBall(itemEvent.getItemStack())) {
+        if (NuzlockeConfigProxy.getNuzlocke().preventMasterBallUse() && ModFile.stackHasMasterBall(itemEvent.getItemStack())) {
             itemEvent.setCanceled(true);
         }
     }

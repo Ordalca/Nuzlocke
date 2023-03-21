@@ -28,8 +28,7 @@ public class NicknameHandler {
     public static void receivedPokemon(PokemonReceivedEvent event) {
         if (event.isCanceled()) return;
 
-        NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)StorageProxy.getParty(event.getPlayer()).playerData;
-        if (data.isNuzlockeEnabled() && nicknamesRequired) {
+        if (nicknamesRequired) {
             PokemonHolder holder = new PokemonHolder(event.getPokemon());
             if (!holder.isNicknamed()) {
                 requestNickname(event.getPlayer(), holder);
@@ -41,8 +40,7 @@ public class NicknameHandler {
     public static void receivedRaidPokemon(CaptureEvent.SuccessfulRaidCapture event) {
         if (event.isCanceled()) return;
 
-        NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)StorageProxy.getParty(event.getPlayer()).playerData;
-        if (data.isNuzlockeEnabled() && nicknamesRequired) {
+        if (nicknamesRequired) {
             PokemonHolder holder = new PokemonHolder(event.getRaidPokemon());
             requestNickname(event.getPlayer(), holder);
         }
@@ -50,8 +48,7 @@ public class NicknameHandler {
 
     @SubscribeEvent
     public static void evolveCheck(EvolveEvent evolve) {
-        NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)StorageProxy.getParty(evolve.getPlayer()).playerData;
-        if (data.isNuzlockeEnabled() && nicknamesRequired) {
+        if (nicknamesRequired) {
             PlayerPartyStorage party = StorageProxy.getParty(evolve.getPlayer());
             for (Pokemon poke : party.getTeam()) {
                 if (poke.getSpecies().is(PixelmonSpecies.SHEDINJA)) {

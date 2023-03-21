@@ -22,7 +22,7 @@ public class ClientNicknameHandler {
     public static void screenClear(GuiOpenEvent event) {
         if (event.getGui() == null) {
 
-            if (NuzlockeClientPlayerData.isNuzlockeEnabled() && NuzlockeConfigProxy.getNuzlocke().areNicknamesRequired()) {
+            if (NuzlockeConfigProxy.getNuzlocke().areNicknamesRequired()) {
                 if (toBeNicknamed.size() > 0) {
                     PokemonHolder pokemon = toBeNicknamed.get(0);
                     NicknameRequiredScreen screen = new NicknameRequiredScreen(pokemon);
