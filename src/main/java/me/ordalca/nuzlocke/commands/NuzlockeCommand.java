@@ -14,6 +14,7 @@ import com.pixelmonmod.pixelmon.command.PixelCommand;
 import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.networking.NuzlockeNetwork;
 import me.ordalca.nuzlocke.networking.messages.client.PlayerDataSyncMessage;
+import me.ordalca.nuzlocke.server.HardCoreHandler;
 import me.ordalca.nuzlocke.server.NuzlockeServerPlayerData;
 
 import net.minecraft.server.MinecraftServer;
@@ -41,17 +42,17 @@ public class NuzlockeCommand extends PixelCommand {
 
         String command = args[0];
         if (command.equalsIgnoreCase("begin")) {
-            if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
-                NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)StorageProxy.getParty(player.getUUID()).playerData;
-
-                PlayerDataSyncMessage message = new PlayerDataSyncMessage(data.blockedBiomes, data.nuzlockeEnabled = true);
-                NuzlockeNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(()->player), message);
-            }
+            HardCoreHandler.startNuzlocke(player);
         } else if (command.equalsIgnoreCase("cancel")) {
             if (NuzlockeConfigProxy.getNuzlocke().isPermissionRequired()) {
                 NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)StorageProxy.getParty(player.getUUID()).playerData;
                 PlayerDataSyncMessage message = new PlayerDataSyncMessage(data.blockedBiomes, data.nuzlockeEnabled = false);
                 NuzlockeNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(()->player), message);
+                String confirmMessage = "The Nuzlocke Challenge has been cancelled.";
+                PixelmonCommandUtils.sendMessage(player, confirmMessage);
+            } else {
+                String confirmMessage = "The Nuzlocke Challenge cannot be cancelled!";
+                PixelmonCommandUtils.sendMessage(player, confirmMessage);
             }
         }
         else if (command.equalsIgnoreCase("reset")) {
@@ -59,6 +60,9 @@ public class NuzlockeCommand extends PixelCommand {
             if (args.length > 1 && args[1].equalsIgnoreCase("confirm")) {
                 ModFile.LOGGER.debug("runReset");
                 resetNuzlocke(player);
+
+                String confirmMessage = "The Nuzlocke Challenge has been reset.";
+                PixelmonCommandUtils.sendMessage(player, confirmMessage);
             } else {
                 String confirmMessage = "This removes all pokemon from party and pc.  To verify, enter "+confirmCommand;
                 PixelmonCommandUtils.sendMessage(player, confirmMessage);
