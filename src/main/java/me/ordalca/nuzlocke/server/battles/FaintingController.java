@@ -11,6 +11,7 @@ import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
 import com.pixelmonmod.pixelmon.battles.raids.RaidData.RaidPlayer;
 
+import me.ordalca.nuzlocke.ModFile;
 import me.ordalca.nuzlocke.commands.NuzlockeConfigProxy;
 import me.ordalca.nuzlocke.commands.NuzlockeConfig.*;
 
@@ -20,7 +21,7 @@ import net.minecraftforge.event.entity.player.PlayerWakeUpEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.UUID;
+import java.util.List;
 
 public class FaintingController {
 
@@ -48,8 +49,6 @@ public class FaintingController {
         Pokemon pokemon = event.getPokemon();
         if (!data.inBattle) {
             pokemonFainted(storage,storage.getSlot(pokemon));
-        } else if (!data.inRaid){
-            data.faintedPokemon.add(pokemon.getUUID());
         }
     }
 
@@ -96,11 +95,16 @@ public class FaintingController {
                 NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)storage.playerData;
                 if (data.isNuzlockeEnabled()) {
                     data.inBattle = false;
-                    if (NuzlockeConfigProxy.getNuzlocke().isPVPDeathEnforced() || !(event.getBattleController().isPvP())) {
-                        for (UUID fainted : data.faintedPokemon) {
-                            pokemonFainted(storage, storage.getSlot(fainted));
+                    if (!data.inRaid) {
+                        if (NuzlockeConfigProxy.getNuzlocke().isPVPDeathEnforced() || !(event.getBattleController().isPvP())) {
+                            List<Pokemon> party = storage.getTeam();
+                            for (Pokemon pokemon : party) {
+                                if (pokemon.isFainted() && !pokemon.getPersistentData().getBoolean("dead")) {
+                                    ModFile.LOGGER.debug("Fainting "+pokemon);
+                                    pokemonFainted(storage, storage.getSlot(pokemon));
+                                }
+                            }
                         }
-                        data.faintedPokemon.clear();
                     }
                 }
             }

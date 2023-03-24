@@ -25,7 +25,6 @@ public class NuzlockeServerPlayerData extends PlayerData {
 
     public boolean inBattle = false;
     public boolean inRaid = false;
-    public ArrayList<UUID> faintedPokemon = new ArrayList<>();
     public HashMap<String, String> battleBiomes  = new HashMap<>();
 
     public boolean nuzlockeEnabled = false;
