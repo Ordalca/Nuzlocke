@@ -1,7 +1,7 @@
 package me.ordalca.nuzlocke.server.captures;
 
 import com.pixelmonmod.pixelmon.api.command.PixelmonCommandUtils;
-import com.pixelmonmod.pixelmon.api.events.BattleStartedEvent;
+import com.pixelmonmod.pixelmon.api.events.battles.BattleStartedEvent;
 import com.pixelmonmod.pixelmon.api.events.CaptureEvent;
 import com.pixelmonmod.pixelmon.api.events.battles.BattleEndEvent;
 import com.pixelmonmod.pixelmon.api.events.spawning.SpawnEvent;
@@ -98,9 +98,9 @@ public class BiomeBlocker {
     @SubscribeEvent
     public static void blockViaFirstEncounter(BattleStartedEvent event) {
         if (NuzlockeConfigProxy.getNuzlocke().isFirstEncounterRestricted()) {
-            ArrayList<ServerPlayerEntity> players = getPlayers(event.participant1);
+            ArrayList<ServerPlayerEntity> players = getPlayers(event.getTeamOne());
             if (players.size() > 0) {
-                ArrayList<PixelmonEntity> nonBossWildPokemon = BiomeBlocker.getPokemon(event.participant2);
+                ArrayList<PixelmonEntity> nonBossWildPokemon = BiomeBlocker.getPokemon(event.getTeamTwo());
                 for (ServerPlayerEntity player : players) {
                     PlayerPartyStorage storage = StorageProxy.getParty(player);
                     NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)storage.playerData;

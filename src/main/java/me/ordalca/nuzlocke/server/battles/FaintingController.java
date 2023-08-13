@@ -2,6 +2,7 @@ package me.ordalca.nuzlocke.server.battles;
 
 import com.pixelmonmod.pixelmon.api.config.PixelmonConfigProxy;
 import com.pixelmonmod.pixelmon.api.events.*;
+import com.pixelmonmod.pixelmon.api.events.battles.BattleStartedEvent;
 import com.pixelmonmod.pixelmon.api.events.battles.BattleEndEvent;
 import com.pixelmonmod.pixelmon.api.events.raids.EndRaidEvent;
 import com.pixelmonmod.pixelmon.api.events.raids.StartRaidEvent;
@@ -78,8 +79,8 @@ public class FaintingController {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onBattleStart(BattleStartedEvent event) {
-        if (event.bc.containsParticipantType(PlayerParticipant.class)) {
-            for (PlayerParticipant player : event.bc.getPlayers()) {
+        if (event.getBattleController().containsParticipantType(PlayerParticipant.class)) {
+            for (PlayerParticipant player : event.getBattleController().getPlayers()) {
                 PlayerPartyStorage storage = StorageProxy.getParty(player.player);
                 NuzlockeServerPlayerData data = (NuzlockeServerPlayerData)storage.playerData;
                 data.inBattle = true;

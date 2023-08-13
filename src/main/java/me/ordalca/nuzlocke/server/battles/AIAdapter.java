@@ -1,7 +1,7 @@
 package me.ordalca.nuzlocke.server.battles;
 
 import com.pixelmonmod.pixelmon.ai.ExecuteActionGoal;
-import com.pixelmonmod.pixelmon.api.events.BattleStartedEvent;
+import com.pixelmonmod.pixelmon.api.events.battles.BattleStartedEvent;
 import com.pixelmonmod.pixelmon.api.events.battles.SetBattleAIEvent;
 import com.pixelmonmod.pixelmon.api.events.spawning.SpawnEvent;
 import com.pixelmonmod.pixelmon.api.pokemon.species.aggression.Aggression;
@@ -35,13 +35,13 @@ public class AIAdapter {
 
     @SubscribeEvent
     public static void npcPokemonBooster(BattleStartedEvent event) {
-        if (! (participantInNuzlocke(Arrays.asList(event.participant1)))) {
+        if (! (participantInNuzlocke(Arrays.asList(event.getTeamOne())))) {
             return;
         }
 
 
         if (NuzlockeConfigProxy.getNuzlocke().isEliteTrainerPokemon()) {
-            for (BattleParticipant part : event.participant2) {
+            for (BattleParticipant part : event.getTeamTwo()) {
                 if (part instanceof TrainerParticipant) {
                     TrainerParticipant trainer = (TrainerParticipant) part;
                     for (PixelmonWrapper pokemon : trainer.allPokemon) {
@@ -55,15 +55,15 @@ public class AIAdapter {
 
     @SubscribeEvent
     public static void npcAIChooser(SetBattleAIEvent event) {
-        if (!participantInNuzlocke(event.bc.participants)) {
+        if (!participantInNuzlocke(event.getBattleController().participants)) {
             return;
         }
         ModFile.LOGGER.debug("set AI");
 
-        if (event.participant instanceof TrainerParticipant) {
+        if (event.getParticipant() instanceof TrainerParticipant) {
             ModFile.LOGGER.debug("trainer ai");
 
-            TrainerParticipant trainer = (TrainerParticipant) event.participant;
+            TrainerParticipant trainer = (TrainerParticipant) event.getParticipant();
             TrainerSkill skill = NuzlockeConfigProxy.getNuzlocke().isSmartTrainers();
             if (skill != TrainerSkill.STANDARD) {
                 BattleAIBase trueAI = event.getAI();
